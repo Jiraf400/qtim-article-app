@@ -3,7 +3,9 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as process from 'process';
 import * as dotenv from 'dotenv';
-import { User } from './auth/user/user.entity';
+import { User } from './auth/models/user.entity';
+import { ArticleModule } from './article/article.module';
+import { Article } from './article/models/article.entity';
 
 dotenv.config();
 
@@ -14,9 +16,10 @@ dotenv.config();
       type: 'postgres',
       url: `${process.env.POSTGRES_URL}`,
       autoLoadEntities: true,
-      synchronize: true,
-      entities: [User],
+      synchronize: false,
+      entities: [User, Article],
     }),
+    ArticleModule,
   ],
 })
 export class AppModule {}
