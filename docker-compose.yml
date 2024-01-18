@@ -1,0 +1,11 @@
+version: '3'
+services:
+  qtim-pg:
+    container_name: qtim-pg
+    image: postgres:12
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: article_app
