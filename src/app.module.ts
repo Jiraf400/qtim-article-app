@@ -13,11 +13,9 @@ dotenv.config();
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: `${process.env.POSTGRES_URL}`,
+      autoLoadEntities: true,
       synchronize: true,
-      logging: false,
       entities: [User],
-      migrations: [],
-      subscribers: [],
     }),
   ],
 })
