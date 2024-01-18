@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService, isEmailValid } from './auth.service';
-import { UserDto } from './user/user.dto';
+import { UserDto } from './models/user.dto';
 
 @Controller('auth')
 export class AuthController {

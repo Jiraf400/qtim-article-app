@@ -2,10 +2,10 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as process from 'process';
-import { User } from './user/user.entity';
+import { User } from './models/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserDto } from './user/user.dto';
+import { UserDto } from './models/user.dto';
 
 @Injectable()
 export class AuthService {
