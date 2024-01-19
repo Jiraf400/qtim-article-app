@@ -122,6 +122,12 @@ export class ArticleService {
   }
 
   async getArticlesByAuthorId(user_id: number) {
+    const user = await this.userRepository.findOneBy({ id: user_id });
+
+    if (!user) {
+      throw new HttpException('Author not found', 400);
+    }
+
     const articles = await this.articleRepository.find({
       relations: {
         user: true,
