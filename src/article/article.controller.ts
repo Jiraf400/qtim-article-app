@@ -46,11 +46,6 @@ export class ArticleController {
     });
   }
 
-  @Get('/hello')
-  getHello(@Req() req: Request, @Res() res: Response) {
-    return res.status(200).json({ message: `Hello!!! ${new Date()}` });
-  }
-
   @Get(':id')
   async getOneArticle(
     @Res() res: Response,
