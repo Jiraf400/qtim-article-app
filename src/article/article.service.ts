@@ -3,7 +3,9 @@ import { ArticleDto } from './models/article.dto';
 import { Article } from './models/article.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../auth/models/user.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
+import { ArticleModel } from './models/article.model';
+import { ArticleMapper } from './mappers/article.mapper';
 
 @Injectable()
 export class ArticleService {
@@ -12,6 +14,7 @@ export class ArticleService {
     private userRepository: Repository<User>,
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
+    private mapper: ArticleMapper,
   ) {}
 
   async createNewArticle(dto: ArticleDto, userId: number) {
@@ -21,13 +24,15 @@ export class ArticleService {
       throw new HttpException('No user found', 400);
     }
 
-    const article = mapDtoToArticle(dto, user);
+    const article = this.mapper.mapDtoToArticle(dto, user);
 
     const saved = await this.articleRepository.save(article);
 
+    const savedModel = this.mapper.mapArticleToModel(saved);
+
     console.log(`Article created with id: ${saved.id}`);
 
-    return saved;
+    return savedModel;
   }
 
   async updateArticle(id: number, user_id: number, articleDto: ArticleDto) {
@@ -84,12 +89,12 @@ export class ArticleService {
       },
     });
 
-    if (!article) {
-      throw new HttpException('No article found', 400);
-    }
-
     if (article.user.id !== user.id) {
       throw new HttpException('Access not allowed', 401);
+    }
+
+    if (!article) {
+      throw new HttpException('No article found', 400);
     }
 
     await this.articleRepository.delete(article);
@@ -99,23 +104,68 @@ export class ArticleService {
     return article.id;
   }
 
-  async getArticleById(id: number) {}
+  async getArticleById(id: number) {
+    const article = await this.articleRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        user: true,
+      },
+    });
 
-  async getArticlesByAuthorId(authorId: number) {
-    return [];
+    if (!article) {
+      throw new HttpException('Article not found', 400);
+    }
+
+    return this.mapper.mapArticleToModel(article);
+  }
+
+  async getArticlesByAuthorId(user_id: number) {
+    const articles = await this.articleRepository.find({
+      relations: {
+        user: true,
+      },
+      where: {
+        user: {
+          id: user_id,
+        },
+      },
+    });
+
+    const models: ArticleModel[] = [];
+
+    for (const article of articles) {
+      const model = this.mapper.mapArticleToModel(article);
+      models.push(model);
+    }
+
+    return models;
   }
 
   async getArticlesByDate(date: string) {
-    return [];
+    const { startOfTime, endOfTime } =
+      this.mapper.mapDateToDateTimeObjects(date);
+
+    const articles = await this.articleRepository.find({
+      relations: {
+        user: true,
+      },
+      where: {
+        publishedAt: Between(
+          new Date(startOfTime.toISOString()),
+          new Date(endOfTime.toISOString()),
+        ),
+      },
+    });
+
+    const models: ArticleModel[] = [];
+
+    for (const article of articles) {
+      const model = this.mapper.mapArticleToModel(article);
+      models.push(model);
+    }
+
+    return models;
   }
-}
-
-function mapDtoToArticle(articleDto: ArticleDto, user: User): Article {
-  const article = new Article();
-  article.name = articleDto.name;
-  article.description = articleDto.description;
-  article.publishedAt = new Date();
-  article.user = user;
-
-  return article;
 }
