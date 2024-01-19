@@ -15,7 +15,6 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ArticleDto } from './models/article.dto';
-import { Article } from './models/article.entity';
 import { ArticleService } from './article.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 
@@ -47,6 +46,11 @@ export class ArticleController {
     });
   }
 
+  @Get('/hello')
+  getHello(@Req() req: Request, @Res() res: Response) {
+    return res.status(200).json({ message: `Hello!!! ${new Date()}` });
+  }
+
   @Get(':id')
   async getOneArticle(
     @Res() res: Response,
@@ -72,7 +76,7 @@ export class ArticleController {
       return res.status(400).json({ message: 'Id field required' });
     }
 
-    const articles = <Article[]>await this.service.getArticlesByAuthorId(id);
+    const articles = await this.service.getArticlesByAuthorId(id);
 
     return res.status(200).json({
       status: 'OK',
@@ -93,7 +97,7 @@ export class ArticleController {
         .json({ message: 'Date format not equal to dd-mm-yyyy' });
     }
 
-    const articles = <Article[]>await this.service.getArticlesByDate(date);
+    const articles = await this.service.getArticlesByDate(date);
 
     return res.status(200).json({
       status: 'OK',
@@ -149,8 +153,8 @@ export class ArticleController {
   }
 }
 
-function isValidDateFormatDDMMYYYY(inputDate: string) {
-  const date_regex = / (^0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-(\d{4}$) /;
+function isValidDateFormatDDMMYYYY(dateString: string): boolean {
+  const dateFormatRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
 
-  return date_regex.test(inputDate);
+  return dateFormatRegex.test(dateString);
 }
