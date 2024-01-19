@@ -121,7 +121,9 @@ export class ArticleService {
     return this.mapper.mapArticleToModel(article);
   }
 
-  async getArticlesByAuthorId(user_id: number) {
+  async getArticlesByAuthorId(user_id: number, { page = 1, limit = 10 }) {
+    const skip = (page - 1) * limit;
+
     const user = await this.userRepository.findOneBy({ id: user_id });
 
     if (!user) {
@@ -137,6 +139,8 @@ export class ArticleService {
           id: user_id,
         },
       },
+      skip,
+      take: limit,
     });
 
     const models: ArticleModel[] = [];
@@ -149,7 +153,9 @@ export class ArticleService {
     return models;
   }
 
-  async getArticlesByDate(date: string) {
+  async getArticlesByDate(date: string, { page = 1, limit = 10 }) {
+    const skip = (page - 1) * limit;
+
     const { startOfTime, endOfTime } =
       this.mapper.mapDateToDateTimeObjects(date);
 
@@ -163,6 +169,8 @@ export class ArticleService {
           new Date(endOfTime.toISOString()),
         ),
       },
+      skip,
+      take: limit,
     });
 
     const models: ArticleModel[] = [];
