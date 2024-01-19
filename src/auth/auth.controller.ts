@@ -1,7 +1,8 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { AuthService, isEmailValid } from './auth.service';
+import { AuthService } from './auth.service';
 import { UserDto } from './models/user.dto';
+import { ValidationUtils } from '../utils/ValidationUtils';
 
 @Controller('auth')
 export class AuthController {
@@ -9,7 +10,7 @@ export class AuthController {
 
   @Post('register')
   async registerNewUser(@Res() res: Response, @Body() user: UserDto) {
-    if (!isEmailValid(user.email)) {
+    if (!ValidationUtils.isEmailValid(user.email)) {
       return res.status(400).json({ message: 'All fields must be filled.' });
     }
 
