@@ -76,7 +76,7 @@ export class ArticleController {
 
     if (!ValidationUtils.isValidPaginationParams(query)) {
       return res.status(400).json({
-        error: 'Page and limit values should be => 0 ',
+        error: 'Page and limit values should be => 0',
       });
     }
 
@@ -107,7 +107,7 @@ export class ArticleController {
 
     if (!ValidationUtils.isValidPaginationParams(query)) {
       return res.status(400).json({
-        error: 'Page and limit values should be => 0 ',
+        error: 'Page and limit values should be => 0',
       });
     }
 
@@ -115,7 +115,8 @@ export class ArticleController {
 
     return res.status(200).json({
       status: 'OK',
-      message: `Articles found: ${articles.length}`,
+      page: query.page,
+      limit: query.limit,
       body: articles,
     });
   }
