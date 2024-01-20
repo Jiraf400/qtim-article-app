@@ -11,6 +11,7 @@ import { ArticleDto } from './models/article.dto';
 import { ArticleModel } from './models/article.model';
 import { ArticleMapper } from './mappers/article.mapper';
 import { ValidationUtils } from '../utils/ValidationUtils';
+import { RedisService } from '../cache/redis.service';
 
 describe('ArticleController', () => {
   let controller: ArticleController;
@@ -23,6 +24,7 @@ describe('ArticleController', () => {
         ArticleService,
         JwtService,
         ArticleMapper,
+        RedisService,
         {
           provide: getRepositoryToken(User),
           useClass: Repository,
