@@ -74,12 +74,10 @@ export class ArticleService {
       throw new HttpException('Access not allowed', 401);
     }
 
-    await this.articleRepository
-      .createQueryBuilder()
-      .update(article)
-      .set({ name: articleDto.name, description: articleDto.description })
-      .where('id = :id', { id: id })
-      .execute();
+    await this.articleRepository.update(id, {
+      name: articleDto.name,
+      description: articleDto.description,
+    });
 
     const updated = await this.articleRepository.findOneBy({ id });
 
@@ -171,13 +169,13 @@ export class ArticleService {
     articles = JSON.parse(articles);
 
     if (!articles || page !== 1 || limit !== 10) {
-      console.log(`Article for author ${user_id} not found in cache`);
+      console.log(`Article for user ${user_id} not found in cache`);
       const skip = (page - 1) * limit;
 
       const user = await this.userRepository.findOneBy({ id: user_id });
 
       if (!user) {
-        throw new HttpException('Author not found', 400);
+        throw new HttpException('User not found', 400);
       }
 
       articles = await this.articleRepository.find({
