@@ -6,7 +6,7 @@ import { User } from '../auth/models/user.entity';
 import { Between, Repository } from 'typeorm';
 import { ArticleModel } from './models/article.model';
 import { ArticleMapper } from './mappers/article.mapper';
-import { client } from '../cache/redis.config';
+import { RedisService } from '../cache/redis.service';
 
 @Injectable()
 export class ArticleService {
@@ -16,6 +16,7 @@ export class ArticleService {
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
     private mapper: ArticleMapper,
+    private redisClient: RedisService,
   ) {}
 
   async createNewArticle(dto: ArticleDto, user_id: number) {
@@ -33,11 +34,16 @@ export class ArticleService {
 
     const savedModel = this.mapper.mapArticleToModel(saved);
 
-    await client.del(`cached multiple articles key for author: ${user_id}`);
-    await client.del(
+    await this.redisClient.deleteValueFromCache(
+      `cached multiple articles key for author: ${user_id}`,
+    );
+    await this.redisClient.deleteValueFromCache(
       `cached multiple articles key for date: ${saved.publishedAt}`,
     );
-    await client.set(`${saved.id}`, JSON.stringify(article));
+    await this.redisClient.setValueToCache(
+      `${saved.id}`,
+      JSON.stringify(article),
+    );
 
     console.log(`Article created with id: ${saved.id}`);
 
@@ -77,12 +83,14 @@ export class ArticleService {
 
     const updated = await this.articleRepository.findOneBy({ id });
 
-    await client.del(`${id}`);
-    await client.del(`cached multiple articles key for author: ${user_id}`);
-    await client.del(
+    await this.redisClient.deleteValueFromCache(`${id}`);
+    await this.redisClient.deleteValueFromCache(
+      `cached multiple articles key for author: ${user_id}`,
+    );
+    await this.redisClient.deleteValueFromCache(
       `cached multiple articles key for date: ${updated.publishedAt}`,
     );
-    await client.set(`${id}`, JSON.stringify(article));
+    await this.redisClient.setValueToCache(`${id}`, JSON.stringify(article));
 
     console.log(`Article updated with id: ${updated.id}`);
 
@@ -115,9 +123,11 @@ export class ArticleService {
 
     await this.articleRepository.delete(article);
 
-    await client.del(`${id}`);
-    await client.del(`cached multiple articles key for author: ${user_id}`);
-    await client.del(
+    await this.redisClient.deleteValueFromCache(`${id}`);
+    await this.redisClient.deleteValueFromCache(
+      `cached multiple articles key for author: ${user_id}`,
+    );
+    await this.redisClient.deleteValueFromCache(
       `cached multiple articles key for date: ${this.mapper.mapDateToDDMMYYYY(article.publishedAt)}`,
     );
 
@@ -127,7 +137,7 @@ export class ArticleService {
   }
 
   async getArticleById(id: number) {
-    let article: any = await client.get(`${id}`);
+    let article: any = await this.redisClient.getValueFromCache(`${id}`);
 
     article = JSON.parse(article);
 
@@ -143,17 +153,18 @@ export class ArticleService {
         },
       });
     }
+
     if (!article) {
       throw new HttpException('Article not found', 400);
     }
 
-    await client.set(`${id}`, JSON.stringify(article));
+    await this.redisClient.setValueToCache(`${id}`, JSON.stringify(article));
 
     return this.mapper.mapArticleToModel(article);
   }
 
   async getArticlesByAuthorId(user_id: number, { page = 1, limit = 10 }) {
-    let articles: any = await client.get(
+    let articles: any = await this.redisClient.getValueFromCache(
       `cached multiple articles key for author: ${user_id}`,
     );
 
@@ -183,7 +194,7 @@ export class ArticleService {
       });
     }
 
-    await client.set(
+    await this.redisClient.setValueToCache(
       `cached multiple articles key for author: ${user_id}`,
       JSON.stringify(articles),
     );
@@ -199,7 +210,7 @@ export class ArticleService {
   }
 
   async getArticlesByDate(date: string, { page = 1, limit = 10 }) {
-    let articles: any = await client.get(
+    let articles: any = await this.redisClient.getValueFromCache(
       `cached multiple articles key for date: ${date}`,
     );
 
@@ -227,7 +238,7 @@ export class ArticleService {
       });
     }
 
-    await client.set(
+    await this.redisClient.setValueToCache(
       `cached multiple articles key for date: ${date}`,
       JSON.stringify(articles),
     );
