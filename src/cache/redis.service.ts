@@ -3,16 +3,20 @@ import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService {
-  private readonly client: RedisClientType;
+  private client: RedisClientType;
 
   constructor() {
-    this.client = createClient();
-
-    this.client.connect();
+    this.doConnect();
 
     this.client.on('error', (err) => {
       console.error('Redis Client Error', err);
     });
+  }
+
+  doConnect() {
+    this.client = createClient();
+
+    this.client.connect();
   }
 
   async getValueFromCache(key: string) {
