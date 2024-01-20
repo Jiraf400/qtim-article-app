@@ -34,12 +34,8 @@ export class ArticleService {
 
     const savedModel = this.mapper.mapArticleToModel(saved);
 
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for author: ${user_id}`,
-    );
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for date: ${saved.publishedAt}`,
-    );
+    await this.resetRedisCache(null, user_id, saved.publishedAt);
+
     await this.redisClient.setValueToCache(
       `${saved.id}`,
       JSON.stringify(article),
@@ -81,13 +77,8 @@ export class ArticleService {
 
     const updated = await this.articleRepository.findOneBy({ id });
 
-    await this.redisClient.deleteValueFromCache(`${id}`);
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for author: ${user_id}`,
-    );
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for date: ${updated.publishedAt}`,
-    );
+    await this.resetRedisCache(id, user_id, updated.publishedAt);
+
     await this.redisClient.setValueToCache(`${id}`, JSON.stringify(article));
 
     console.log(`Article updated with id: ${updated.id}`);
@@ -121,13 +112,7 @@ export class ArticleService {
 
     await this.articleRepository.delete(article);
 
-    await this.redisClient.deleteValueFromCache(`${id}`);
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for author: ${user_id}`,
-    );
-    await this.redisClient.deleteValueFromCache(
-      `cached multiple articles key for date: ${this.mapper.mapDateToDDMMYYYY(article.publishedAt)}`,
-    );
+    await this.resetRedisCache(id, user_id, article.publishedAt);
 
     console.log(`Article deleted with id: ${article.id}`);
 
@@ -249,5 +234,17 @@ export class ArticleService {
     }
 
     return models;
+  }
+
+  async resetRedisCache(id: number, user_id: number, publishedDate: Date) {
+    await this.redisClient.deleteValueFromCache(`${id}`);
+
+    await this.redisClient.deleteValueFromCache(
+      `cached multiple articles key for author: ${user_id}`,
+    );
+
+    await this.redisClient.deleteValueFromCache(
+      `cached multiple articles key for date: ${this.mapper.mapDateToDDMMYYYY(publishedDate)}`,
+    );
   }
 }
