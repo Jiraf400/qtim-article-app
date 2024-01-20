@@ -80,12 +80,16 @@ export class ArticleController {
       });
     }
 
-    const articles = await this.service.getArticlesByAuthorId(id, query);
+    const { models, skip, limit } = await this.service.getArticlesByAuthorId(
+      id,
+      query,
+    );
 
     return res.status(200).json({
       status: 'OK',
-      message: `Articles found: ${articles.length}`,
-      body: articles,
+      page: skip,
+      limit: limit,
+      body: models,
     });
   }
 
@@ -111,13 +115,16 @@ export class ArticleController {
       });
     }
 
-    const articles = await this.service.getArticlesByDate(date, query);
+    const { models, skip, limit } = await this.service.getArticlesByDate(
+      date,
+      query,
+    );
 
     return res.status(200).json({
       status: 'OK',
-      page: query.page,
-      limit: query.limit,
-      body: articles,
+      page: skip,
+      limit: limit,
+      body: models,
     });
   }
 

@@ -153,9 +153,10 @@ export class ArticleService {
 
     articles = JSON.parse(articles);
 
+    const skip = (page - 1) * limit;
+
     if (!articles || page !== 1 || limit !== 10) {
       console.log(`Article for user ${user_id} not found in cache`);
-      const skip = (page - 1) * limit;
 
       const user = await this.userRepository.findOneBy({ id: user_id });
 
@@ -189,7 +190,7 @@ export class ArticleService {
       models.push(model);
     }
 
-    return models;
+    return { models, skip, limit };
   }
 
   async getArticlesByDate(date: string, { page = 1, limit = 10 }) {
@@ -199,9 +200,10 @@ export class ArticleService {
 
     articles = JSON.parse(articles);
 
+    const skip = (page - 1) * limit;
+
     if (!articles) {
       console.log(`Article for date ${date} not found in cache`);
-      const skip = (page - 1) * limit;
 
       const { startOfTime, endOfTime } =
         this.mapper.mapDateToDateTimeObjects(date);
@@ -233,7 +235,7 @@ export class ArticleService {
       models.push(model);
     }
 
-    return models;
+    return { models, skip, limit };
   }
 
   async resetRedisCache(id: number, user_id: number, publishedDate: Date) {
