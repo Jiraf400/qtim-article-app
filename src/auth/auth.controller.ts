@@ -1,15 +1,16 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { UserDto } from './models/user.dto';
+import { UserRegisterDto } from './models/dtos/user-register.dto';
 import { ValidationUtils } from '../utils/ValidationUtils';
+import { UserLoginDto } from './models/dtos/user-login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async registerNewUser(@Res() res: Response, @Body() user: UserDto) {
+  async registerNewUser(@Res() res: Response, @Body() user: UserRegisterDto) {
     if (!ValidationUtils.isEmailValid(user.email)) {
       return res.status(400).json({ message: 'All fields must be filled.' });
     }
@@ -24,8 +25,8 @@ export class AuthController {
   }
 
   @Post('login')
-  async loginUser(@Req() req: Request, @Res() res: Response) {
-    const { email, password } = req.body;
+  async loginUser(@Res() res: Response, @Body() user: UserLoginDto) {
+    const { email, password } = user;
 
     if (!email || !password) {
       return res.status(400).json({ message: 'All fields must be filled.' });
